@@ -2,16 +2,19 @@ import os
 import sys
 
 import requests
+from PyQt5 import uic
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 
-SCREEN_SIZE = [600, 450] # dsa
+SCREEN_SIZE = [600, 450]  # dsa
 
 
-class Example(QWidget):
+class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.getImage()
+        uic.loadUi('design.ui', self)
+        # self.getImage()
+        self.comboBox.addItems(["Схема", "Спутник", "Гибрид"])
         self.initUI()
 
     def getImage(self):
@@ -33,20 +36,20 @@ class Example(QWidget):
         self.setGeometry(100, 100, *SCREEN_SIZE)
         self.setWindowTitle('Отображение карты')
 
-        ## Изображение
-        self.pixmap = QPixmap(self.map_file)
-        self.image = QLabel(self)
-        self.image.move(0, 0)
-        self.image.resize(600, 450)
-        self.image.setPixmap(self.pixmap)
+        # ## Изображение
+        # self.pixmap = QPixmap(self.map_file)
+        # self.image = QLabel(self)
+        # self.image.move(0, 100)
+        # self.image.resize(600, 450)
+        # self.image.setPixmap(self.pixmap)
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
-        os.remove(self.map_file)
+        # os.remove(self.map_file)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = Example()
+    ex = MyWidget()
     ex.show()
     sys.exit(app.exec())
