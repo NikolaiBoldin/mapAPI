@@ -6,8 +6,6 @@ from PyQt5 import uic
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget
 
-SCREEN_SIZE = [600, 450]
-
 
 class MyWidget(QWidget):
     def __init__(self):
@@ -15,30 +13,50 @@ class MyWidget(QWidget):
         uic.loadUi('widget.ui', self)
 
         self.api_server = "http://static-maps.yandex.ru/1.x/"
-
-        lon = "179"
-        lat = "55.703118"
-
+        self.lon = "0"
+        self.lat = "0"
         self.params = {
-            "ll": ",".join([lon, lat]),
+            "ll": ",".join([self.lon, self.lat]),
             "size": "650,450",
             "l": "map",
-            "z": "10"
-
+            "z": "1"
         }
 
         self.initUI()
 
         self.comboBox.addItems(["Схема", "Спутник", "Гибрид"])
-        self.comboBox.activated[str].connect(self.onChanged)
-        self.pushButton.clicked.connect(self.run)
+        self.types = {"Схема": 'map', "Спутник": 'sat', "Гибрид": 'sat,skl'}
 
-    def run(self):
-        self.params['ll'] = ",".join([self.ll0.text(), self.ll1.text()])
+        self.comboBox.activated[str].connect(self.changed_type)
+        self.ll0.textChanged.connect(self.changed_ll0)
+        self.ll1.textChanged.connect(self.changed_ll1)
+        self.zoom.textChanged.connect(self.changed_zoom)
+
+    def changed_ll0(self):
+        if self.ll0.text() == "":
+            self.lon = '0'
+        else:
+            self.lon = self.ll0.text()
+        self.params['ll'] = ",".join([self.lon, self.lat])
+        self.set_image()
+
+    def changed_ll1(self):
+        if self.ll1.text() == "":
+            self.lat = '0'
+        else:
+            self.lat = self.ll1.text()
+        self.params['ll'] = ",".join([self.lon, self.lat])
+        self.set_image()
+
+    def changed_zoom(self):
         self.params['z'] = str(self.zoom.value())
-        self.getImage()
+        self.set_image()
 
-    def getImage(self):
+    def changed_type(self, text):
+        self.params['l'] = self.types[text]
+        self.set_image()
+
+    def set_image(self):
         response = requests.get(self.api_server, params=self.params)
 
         # Запишем полученное изображение в файл.
@@ -54,19 +72,15 @@ class MyWidget(QWidget):
 
         ## Изображение
         self.map_file = "map.png"
-
         self.image = QLabel(self)
         self.image.move(10, 310)
         self.image.resize(650, 450)
 
-        self.getImage()
+        self.set_image()
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
         os.remove(self.map_file)
-
-    def onChanged(self, text):
-        print(text)
 
 
 if __name__ == '__main__':
