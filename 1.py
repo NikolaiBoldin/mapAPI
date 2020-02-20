@@ -4,48 +4,69 @@ import sys
 import requests
 from PyQt5 import uic
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QLabel, QWidget
 
-SCREEN_SIZE = [600, 450]  # dsa
+SCREEN_SIZE = [600, 450]
 
 
-class MyWidget(QMainWindow):
+class MyWidget(QWidget):
     def __init__(self):
         super().__init__()
-        uic.loadUi('design.ui', self)
-        # self.getImage()
-        self.comboBox.addItems(["Схема", "Спутник", "Гибрид"])
+        uic.loadUi('widget.ui', self)
+
+        self.api_server = "http://static-maps.yandex.ru/1.x/"
+
+        lon = "179"
+        lat = "55.703118"
+
+        self.params = {
+            "ll": ",".join([lon, lat]),
+            "size": "650,450",
+            "l": "map",
+            "z": "10"
+
+        }
+
         self.initUI()
 
-    def getImage(self):
-        map_request = "http://static-maps.yandex.ru/1.x/?ll=37.530887,55.703118&spn=0.002,0.002&l=map"
-        response = requests.get(map_request)
+        self.comboBox.addItems(["Схема", "Спутник", "Гибрид"])
+        self.comboBox.activated[str].connect(self.onChanged)
+        self.pushButton.clicked.connect(self.run)
 
-        if not response:
-            print("Ошибка выполнения запроса:")
-            print(map_request)
-            print("Http статус:", response.status_code, "(", response.reason, ")")
-            sys.exit(1)
+    def run(self):
+        self.params['ll'] = ",".join([self.ll0.text(), self.ll1.text()])
+        self.params['z'] = str(self.zoom.value())
+        self.getImage()
+
+    def getImage(self):
+        response = requests.get(self.api_server, params=self.params)
 
         # Запишем полученное изображение в файл.
-        self.map_file = "map.png"
         with open(self.map_file, "wb") as file:
             file.write(response.content)
+            self.pixmap = QPixmap(self.map_file)
+            self.image.setPixmap(self.pixmap)
 
     def initUI(self):
-        self.setGeometry(100, 100, *SCREEN_SIZE)
+        # self.setGeometry(100, 100, *SCREEN_SIZE)
+        self.setFixedSize(770, 770)
         self.setWindowTitle('Отображение карты')
 
-        # ## Изображение
-        # self.pixmap = QPixmap(self.map_file)
-        # self.image = QLabel(self)
-        # self.image.move(0, 100)
-        # self.image.resize(600, 450)
-        # self.image.setPixmap(self.pixmap)
+        ## Изображение
+        self.map_file = "map.png"
+
+        self.image = QLabel(self)
+        self.image.move(10, 310)
+        self.image.resize(650, 450)
+
+        self.getImage()
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
-        # os.remove(self.map_file)
+        os.remove(self.map_file)
+
+    def onChanged(self, text):
+        print(text)
 
 
 if __name__ == '__main__':
