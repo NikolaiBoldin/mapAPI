@@ -12,7 +12,12 @@ class MyWidget(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi('widget.ui', self)
+        self.geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
 
+        self.geocoder_params = {
+            "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+            "geocode": '',
+            "format": "json"}
         self.api_server = "http://static-maps.yandex.ru/1.x/"
         self.lon = "0"
         self.lat = "0"
@@ -27,7 +32,6 @@ class MyWidget(QWidget):
 
         self.comboBox.addItems(["Схема", "Спутник", "Гибрид"])
         self.types = {"Схема": 'map', "Спутник": 'sat', "Гибрид": 'sat,skl'}
-
         self.comboBox.activated[str].connect(self.changed_type)
         self.ll0.textChanged.connect(self.changed_ll0)
         self.ll1.textChanged.connect(self.changed_ll1)
@@ -87,6 +91,7 @@ class MyWidget(QWidget):
 
         if event.key() == PyQt5.QtCore.Qt.Key_PageDown:
             self.params['z'] = int(self.params['z']) - 1
+
         if event.key() == PyQt5.QtCore.Qt.Key_PageUp:
             self.params['z'] = int(self.params['z']) + 1
         self.set_image()
