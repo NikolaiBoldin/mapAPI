@@ -16,7 +16,7 @@ class MyWidget(QWidget):
 
         self.geocoder_params = {
             "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
-            "geocode": '',
+            "geocode": self.place.text(),
             "format": "json"}
         self.api_server = "http://static-maps.yandex.ru/1.x/"
         self.lon = "0"
@@ -33,6 +33,7 @@ class MyWidget(QWidget):
         self.comboBox.addItems(["Схема", "Спутник", "Гибрид"])
         self.types = {"Схема": 'map', "Спутник": 'sat', "Гибрид": 'sat,skl'}
         self.comboBox.activated[str].connect(self.changed_type)
+        self.Search.clicked.connect(self.search)
         self.ll0.textChanged.connect(self.changed_ll0)
         self.ll1.textChanged.connect(self.changed_ll1)
         self.zoom.textChanged.connect(self.changed_zoom)
@@ -94,6 +95,17 @@ class MyWidget(QWidget):
 
         if event.key() == PyQt5.QtCore.Qt.Key_PageUp:
             self.params['z'] = int(self.params['z']) + 1
+        self.set_image()
+
+    def search(self):
+        response = requests.get(self.geocoder_api_server, params=self.geocoder_params)
+        json_response = response.json()
+        toponym = json_response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]
+        toponym_coodrinates = str(toponym["Point"]["pos"])
+        print(toponym_coodrinates)
+        self.params['ll'] = ",".join(toponym_coodrinates)
+        print(self.params['ll'])
         self.set_image()
 
 
